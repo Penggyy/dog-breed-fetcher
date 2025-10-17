@@ -1,5 +1,12 @@
 package dogapi;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -13,16 +20,26 @@ import java.util.*;
  * The cache maps the name of a breed to its list of sub breed names.
  */
 public class CachingBreedFetcher implements BreedFetcher {
-    // TODO Task 2: Complete this class
     private int callsMade = 0;
+    private final BreedFetcher fetcher;
+    private final HashMap<String, List<String>> dict = new HashMap<>();
     public CachingBreedFetcher(BreedFetcher fetcher) {
-
+        this.fetcher = fetcher;
     }
 
     @Override
     public List<String> getSubBreeds(String breed) {
-        // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+        if (!(dict.containsKey(breed))) {
+            try {
+                List<String> breeds = fetcher.getSubBreeds(breed);
+                dict.put(breed, breeds);
+                callsMade++;
+            } catch (BreedFetcher.BreedNotFoundException e) {
+                callsMade++;
+                throw new BreedFetcher.BreedNotFoundException(breed);
+            }
+        }
+        return dict.get(breed);
     }
 
     public int getCallsMade() {
